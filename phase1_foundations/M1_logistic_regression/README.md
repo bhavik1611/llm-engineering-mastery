@@ -7,12 +7,15 @@ Implement logistic regression for binary classification from first principles. T
 ## Mathematical Formulation
 
 ### Loss Function
+
 (Placeholder for cross-entropy derivation)
 
 ### Gradient Derivation
+
 (Placeholder for partial derivatives with respect to weights and bias)
 
 ### Update Rule
+
 (Placeholder for gradient descent update equations)
 
 ## Intuition

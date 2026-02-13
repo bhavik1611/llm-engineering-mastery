@@ -1,0 +1,10 @@
+# Core numerical and visualization (Phase 1: M1–M3)
+numpy>=1.24.0
+matplotlib>=3.7.0
+
+# Jupyter for notebooks
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Deep learning (Phase 1: M4, Phase 2–4)
+torch>=2.0.0

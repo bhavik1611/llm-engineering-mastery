@@ -13,7 +13,7 @@ This document records all experiments conducted during the LLM engineering maste
 
 Use this structure for each experiment:
 
-```
+```markdown
 ## Experiment: [Short descriptive name]
 
 **Date:** YYYY-MM-DD
@@ -51,6 +51,7 @@ For milestones that produce quantitative results, use this table format:
 | (name) | (value) | (value) | (value) | (brief) |
 
 Common metrics by phase:
+
 - **Phase 1:** Loss, accuracy, convergence speed
 - **Phase 2:** Loss, perplexity, sample quality
 - **Phase 3:** Perplexity, BLEU/F1, retrieval accuracy
@@ -58,12 +59,41 @@ Common metrics by phase:
 
 ## Visualization Tracking Template
 
-| Experiment | Visualization | File | Purpose |
-|------------|----------------|------|---------|
-| (name) | (e.g., loss curve) | (path) | (why it was created) |
+| Experiment |    Visualization   |  File  |       Purpose        |
+|------------|--------------------|--------|----------------------|
+| (name)     | (e.g., loss curve) | (path) | (why it was created) |
 
 ---
 
 ## Experiments
 
 (Experiments will be appended below as they are run.)
+
+## Experiment: M1 Logistic Regression - Main Run
+
+**Date:** 2026-02-13
+**Milestone:** M1_logistic_regression
+**Objective:** Baseline logistic regression on linearly separable 2D data.
+
+### Setup
+
+- Model: Logistic regression (BCE, sigmoid), gradient descent
+- Data: Synthetic 2D blobs, 80/20 train/test split
+- Optimization: lr=0.5, epochs=200
+
+### Metrics
+
+| Metric | Value |
+|--------|-------|
+| Train Accuracy | 100.0% |
+| Test Accuracy | 100.0% |
+| Final BCE Loss (train) | 0.0039 |
+
+### Visualization
+
+- Path: `visualizations/m1_*.png`
+- Plots: loss curve, decision boundary, learning rate ablation, confusion matrix
+
+### Conclusion
+
+- Baseline run complete. Train and test accuracy reported.
