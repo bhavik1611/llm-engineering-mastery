@@ -21,9 +21,7 @@ Given:
 Probability model: $P(y|x) = \hat{y}^y (1 - \hat{y})^{1-y}$
 
 Cross-entropy loss for a single sample:
-$$
-L(y, \hat{y}) = - \left[ y \log(\hat{y}) + (1 - y)\log(1 - \hat{y}) \right]
-$$
+L(y, 𝑦̂ ) = - [ y · log(𝑦̂ ) + (1 − y) · log(1 − 𝑦̂ ) ]
 
 ### Gradient Derivation
 
@@ -100,7 +98,7 @@ Logistic regression models the probability that a sample belongs to the positive
 ## Completion Checklist
 
 - [x] Gradient derivation documented
-- [ ] Model trains and converges on binary classification
-- [ ] Loss curve visualization in `visualizations/`
-- [ ] Learning rate ablation documented in `experiments_log.md`
-- [ ] Journal entry in `learning_journal.md`
+- [x] Model trains and converges on binary classification
+- [x] Loss curve visualization in `visualizations/`
+- [x] Learning rate ablation documented in `experiments_log.md`
+- [x] Journal entry in `learning_journal.md`
