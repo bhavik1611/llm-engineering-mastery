@@ -77,9 +77,6 @@ class LogisticRegression:
                 z (np.ndarray): Linear output
                 y_pred (np.ndarray): Sigmoid output
         """
-        if w is not None and b is not None:
-            self.weights = w
-            self.bias = b
         z = self.linear_forward(X)
         y_pred = self.sigmoid(z)
         return z, y_pred
@@ -96,7 +93,7 @@ class LogisticRegression:
         Returns:
             tuple: (gradient_w, gradient_b)
         """
-        gradient_w = np.dot(X.T, (y_pred - y)) / len(y) + self.lambda_ * self.weights
+        gradient_w = np.dot(X.T, (y_pred - y)) / len(y) + self.lambda_ * self.weights / len(y)
         gradient_b = np.mean(y_pred - y)
         return gradient_w, gradient_b
 
@@ -126,7 +123,7 @@ class LogisticRegression:
         Returns:
             float: Computed loss value
         """
-        l2_loss = 0.5 * self.lambda_ * np.sum(self.weights ** 2)
+        l2_loss = 0.5 * self.lambda_ * np.sum(self.weights ** 2) / len(y)
         if loss_type == 'bce':
             loss = bce_loss(y, y_pred) + l2_loss
         elif loss_type == 'mse':
