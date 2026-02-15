@@ -51,62 +51,60 @@ class LogisticRegression:
         z = np.clip(z, -500, 500)  # Avoid overflow
         return 1.0 / (1.0 + np.exp(-z))
 
-    def linear_forward(self, X):
+    def linear_forward(self, x):
         """
-        Compute the linear transformation (Xw + b).
+        Compute the linear transformation (xw + b).
 
         Args:
-            X (np.ndarray): Input data of shape (n_samples, n_features)
+            x (np.ndarray): Input data of shape (n_samples, n_features)
 
         Returns:
             np.ndarray: Linear output
         """
-        return np.dot(X, self.weights) + self.bias
+        return np.dot(x, self.weights) + self.bias
 
-    def forward(self, X, w=None, b=None):
+    def forward(self, x):
         """
         Full forward pass: linear + sigmoid activation.
 
         Args:
-            X (np.ndarray): Input data
-            w (np.ndarray, optional): Optionally override weights
-            b (float, optional): Optionally override bias
+            x (np.ndarray): Input data
 
         Returns:
             tuple: (z, y_pred)
                 z (np.ndarray): Linear output
                 y_pred (np.ndarray): Sigmoid output
         """
-        z = self.linear_forward(X)
+        z = self.linear_forward(x)
         y_pred = self.sigmoid(z)
         return z, y_pred
 
-    def gradient(self, X, y, y_pred):
+    def gradient(self, x, y, y_pred):
         """
         Compute gradients of loss w.r.t. weights and bias.
 
         Args:
-            X (np.ndarray): Input features
+            x (np.ndarray): Input features
             y (np.ndarray): True labels
             y_pred (np.ndarray): Predictions after sigmoid
 
         Returns:
             tuple: (gradient_w, gradient_b)
         """
-        gradient_w = np.dot(X.T, (y_pred - y)) / len(y) + self.lambda_ * self.weights / len(y)
+        gradient_w = np.dot(x.T, (y_pred - y)) / len(y) + self.lambda_ * self.weights / len(y)
         gradient_b = np.mean(y_pred - y)
         return gradient_w, gradient_b
 
-    def update_weights(self, X, y, y_pred):
+    def update_weights(self, x, y, y_pred):
         """
         Perform one step of gradient descent to update weights and bias.
 
         Args:
-            X (np.ndarray): Input features
+            x (np.ndarray): Input features
             y (np.ndarray): True labels
             y_pred (np.ndarray): Predictions after sigmoid
         """
-        gradient_w, gradient_b = self.gradient(X, y, y_pred)
+        gradient_w, gradient_b = self.gradient(x, y, y_pred)
         self.weights -= self.lr * gradient_w
         self.bias -= self.lr * gradient_b
         self.grad_norms.append(np.sqrt(np.sum(gradient_w**2) + gradient_b**2))
@@ -146,25 +144,26 @@ class LogisticRegression:
         self.bias = 0.0
         return self.weights, self.bias
 
-    def train(self, X, y):
+    def train(self, x, y):
         """
         Fit the logistic regression model using gradient descent.
 
         Args:
-            X (np.ndarray): Training features (n_samples, n_features)
+            x (np.ndarray): Training features (n_samples, n_features)
             y (np.ndarray): Training labels (n_samples,)
 
         Returns:
             tuple: (weights, bias, losses, grad_norms, history)
         """
-        _, n_features = X.shape
+        _, n_features = x.shape
         self.weights, self.bias = self.init_weights_and_bias(n_features)
         for _ in range(self.epochs):
-            z, y_pred = self.forward(X)
+            _, y_pred = self.forward(x)
             loss = self.loss(y, y_pred, loss_type='bce')
-            self.update_weights(X, y, y_pred)
+            self.update_weights(x, y, y_pred)
             self.append_training_history(loss)
-            self.verbose and print(f"Epoch {_ + 1}, Loss: {loss}")
+            if self.verbose:
+                print(f"Epoch {_ + 1}, Loss: {loss}")
 
         return self.weights, self.bias, self.losses, self.grad_norms, self.history
 
@@ -178,28 +177,28 @@ class LogisticRegression:
         self.history.append((self.weights.copy(), self.bias))
         self.losses.append(loss)
 
-    def predict(self, X):
+    def predict(self, x):
         """
         Predict binary class labels for input data using the trained model.
 
         Args:
-            X (np.ndarray): Input data
+            x (np.ndarray): Input data
 
         Returns:
             np.ndarray: Rounded predictions (0 or 1)
         """
-        z, y_pred = self.forward(X)
+        _, y_pred = self.forward(x)
         return np.round(y_pred)
 
-    def evaluate(self, X, y):
+    def evaluate(self, x, y):
         """
         Compute the classification accuracy of the model.
 
         Args:
-            X (np.ndarray): Input features
+            x (np.ndarray): Input features
             y (np.ndarray): True labels
 
         Returns:
             float: Ratio of correct predictions to total samples
         """
-        return np.mean(self.predict(X) == y)
+        return np.mean(self.predict(x) == y)
