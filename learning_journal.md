@@ -162,3 +162,39 @@ Use this structure for each journal entry:
 - How does this extend to non-convex deep networks (where saddle points exist)?
 
 ---
+
+## Entry: 2026-02-15 — M1 Vanishing Gradient & Activation Analysis
+
+### What I learned
+
+- **Why sigmoid derivative causes vanishing gradient** — Sigmoid asymptotically approaches 0 and 1 (does not "clip"); σ′(z) = σ(z)(1 − σ(z)) → 0 as |z| → ∞. When weights are initialized very large, outputs saturate and gradients become tiny everywhere except near the decision boundary (z ≈ 0, where σ′ ≈ 0.25).
+- **Why logistic regression was trainable despite sigmoid** — BCE–sigmoid cancellation: the gradient ∂L/∂w ∝ (ŷ − y)x does not include σ′. The sigmoid derivative cancels out in the BCE gradient, so we get a clean signal (ŷ − y) and no vanishing. Single-layer convexity also helps.
+- **What changes when stacking multiple sigmoid layers** — Chain rule multiplies derivatives across layers. Each layer contributes a factor ≤ 0.25; the product shrinks exponentially with depth → vanishing gradient.
+  - If each derivative ≤ 0.25, then after L layers: \((0.25)^L\).
+  - For \(L=10\): \((0.25)^{10} \approx 10^{-6}\).
+- **How activation choice affects optimization geometry** — Sigmoid: curved landscape, gradient strongest near decision boundary (output ≈ 0.5), weak when saturated. ReLU: flat (zero gradient) for z < 0, constant derivative 1 for z > 0 → no vanishing in positive region, different loss surface that lets gradients flow farther in deep networks. ReLU avoids vanishing in positive region, but introduces "Dead neuron problem (z < 0 permanently)". That’s a good open question to note.
+- **Conceptual shift (Day 1 → Day 3)** — Day 1: logistic regression as single-layer classifier with sigmoid and BCE. Day 3: activation functions as a design choice that shapes training dynamics—saturation, vanishing gradients, and why sigmoid fails in deep stacks while ReLU helps. Shift from "sigmoid works for classification" to "activation choice determines whether gradients flow through deep networks."
+
+### What was difficult
+
+- Internalizing that sigmoid itself is not the problem in logistic regression; the issue emerges only when stacking layers due to repeated derivative multiplication.
+- Understanding that vanishing gradient is not a failure of gradient descent but a structural property of activation functions.
+- Separating optimization geometry issues (conditioning, learning rate) from activation-induced gradient collapse.
+
+### What I would do differently
+
+- (To be filled as you reflect)
+
+### Connections to prior work
+
+- Builds on M1 logistic regression (sigmoid, BCE, gradients) and optimization geometry (gradient flow, loss surface). Sets up motivation for neural network activations (ReLU) in later milestones.
+
+### Open questions
+
+- How does weight initialization interact with activation saturation?
+- Why do Xavier/He initialization methods help mitigate vanishing gradients?
+- How does softmax + cross-entropy behave in multi-class settings?
+- Why does ReLU change loss surface curvature?
+- How do modern architectures (e.g., residual connections) mitigate vanishing gradients?
+
+---
