@@ -198,3 +198,32 @@ Use this structure for each journal entry:
 - How do modern architectures (e.g., residual connections) mitigate vanishing gradients?
 
 ---
+
+## Entry: 2026-02-15 — M2 Neural Network from Scratch
+
+### What I learned
+
+- **Backprop through 2 layers** — Chain rule: dL/dz₂ = ŷ−y (BCE+sigmoid cancel); dL/da₁ = dL/dz₂ @ W₂ᵀ; dL/dz₁ = dL/da₁ ⊙ σ'(z₁); weight grads = (input)ᵀ @ (upstream) / n.
+- **Gradient check** — Finite difference (L(θ+ε)−L(θ−ε))/(2ε) vs analytical; max relative error < 1e-5 validates implementation.
+- **XOR and depth** — XOR is linearly inseparable. 1-layer (logistic regression) ≈ 50% (random). 2-layer NN with hidden units learns non-linear boundary → ~100%.
+- **Why depth helps** — Hidden layer computes non-linear features (e.g. AND, OR); output layer combines them. Single linear layer cannot approximate XOR.
+
+### What was difficult
+
+- (To be filled as you reflect)
+
+### What I would do differently
+
+- (To be filled as you reflect)
+
+### Connections to prior work
+
+- M1: sigmoid, BCE, gradient descent. M2 stacks two such blocks and chains gradients. Vanishing gradient notebook (M1 closure) foreshadows why ReLU is preferred in deeper nets.
+
+### Open questions
+
+- Why is vanishing gradient more severe in deeper networks?
+- How does ReLU address gradient flow vs sigmoid?
+- Role of initialization in avoiding dead neurons?
+
+---

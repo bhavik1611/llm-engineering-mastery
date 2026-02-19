@@ -7,17 +7,39 @@ Implement a multi-layer neural network with at least one hidden layer from first
 ## Mathematical Formulation
 
 ### Forward Pass
-(Placeholder for layer-wise computation and activation functions)
 
-### Backpropagation
-(Placeholder for chain rule application through layers)
+$$
+z_1 = X W_1 + b_1, \quad a_1 = \sigma(z_1)
+$$
+$$
+z_2 = a_1 W_2 + b_2, \quad \hat{y} = \sigma(z_2)
+$$
 
-### Gradient Expressions
-(Placeholder for derivatives of loss w.r.t. weights and activations)
+Loss: BCE \( L = -\frac{1}{n}\sum_i [y_i \log \hat{y}_i + (1-y_i)\log(1-\hat{y}_i)] \)
+
+### Backpropagation (Chain Rule)
+
+From output toward input:
+1. \(\frac{\partial L}{\partial z_2} = \hat{y} - y\) (BCE + sigmoid cancellation)
+2. \(\frac{\partial L}{\partial W_2} = \frac{1}{n} a_1^T \frac{\partial L}{\partial z_2}\)
+3. \(\frac{\partial L}{\partial b_2} = \frac{1}{n}\sum \frac{\partial L}{\partial z_2}\)
+4. \(\frac{\partial L}{\partial a_1} = \frac{\partial L}{\partial z_2} W_2^T\)
+5. \(\frac{\partial L}{\partial z_1} = \frac{\partial L}{\partial a_1} \odot \sigma'(z_1)\), with \(\sigma'(z) = \sigma(z)(1-\sigma(z))\)
+6. \(\frac{\partial L}{\partial W_1} = \frac{1}{n} X^T \frac{\partial L}{\partial z_1}\)
+7. \(\frac{\partial L}{\partial b_1} = \frac{1}{n}\sum \frac{\partial L}{\partial z_1}\)
+
+### Gradient Expressions (Summary)
+
+| Param | Gradient |
+|-------|----------|
+| \(W_2\) | \(a_1^T (\hat{y}-y) / n\) |
+| \(b_2\) | \(\operatorname{mean}(\hat{y}-y)\) |
+| \(W_1\) | \(X^T \bigl[(\hat{y}-y) W_2^T \odot \sigma'(z_1)\bigr] / n\) |
+| \(b_1\) | \(\operatorname{mean}\bigl[(\hat{y}-y) W_2^T \odot \sigma'(z_1)\bigr]\) |
 
 ## Intuition
 
-(Placeholder for intuition on how backprop distributes error through layers)
+Backprop distributes the output error \(\hat{y}-y\) backward through the network. Each layer multiplies by its local derivative (sigmoid or linear). Gradients flow from output to input; saturated sigmoids shrink the signal (vanishing gradient).
 
 ## Implementation Plan
 
@@ -53,9 +75,9 @@ Implement a multi-layer neural network with at least one hidden layer from first
 
 ## Completion Checklist
 
-- [ ] Backprop derivation documented
-- [ ] Numerical gradient check passes
-- [ ] Multi-layer network trains on non-linear task
-- [ ] Depth comparison experiment in `experiments_log.md`
-- [ ] Visualizations in `visualizations/`
-- [ ] Journal entry in `learning_journal.md`
+- [x] Backprop derivation documented
+- [x] Numerical gradient check passes
+- [x] Multi-layer network trains on non-linear task
+- [x] Depth comparison experiment in `experiments_log.md`
+- [x] Visualizations in `visualizations/`
+- [x] Journal entry in `learning_journal.md`
