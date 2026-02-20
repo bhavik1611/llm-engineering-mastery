@@ -204,13 +204,56 @@ Use this structure for each journal entry:
 ### What I learned
 
 - **Backprop through 2 layers** — Chain rule: dL/dz₂ = ŷ−y (BCE+sigmoid cancel); dL/da₁ = dL/dz₂ @ W₂ᵀ; dL/dz₁ = dL/da₁ ⊙ σ'(z₁); weight grads = (input)ᵀ @ (upstream) / n.
-- **Gradient check** — Finite difference (L(θ+ε)−L(θ−ε))/(2ε) vs analytical; max relative error < 1e-5 validates implementation.
 - **XOR and depth** — XOR is linearly inseparable. 1-layer (logistic regression) ≈ 50% (random). 2-layer NN with hidden units learns non-linear boundary → ~100%.
 - **Why depth helps** — Hidden layer computes non-linear features (e.g. AND, OR); output layer combines them. Single linear layer cannot approximate XOR.
+- **Vanishing gradient and depth** — In logistic regression, σ′ cancels in the BCE gradient. In NNs, gradients flow layer-by-layer; each layer multiplies by σ′(z) ≤ 0.25. Product ≤ (0.25)^L → exponentially smaller with depth. Demo: plot gradient magnitude vs L on log scale.
+- **ReLU vs sigmoid for gradient flow** — Sigmoid: σ′(z) → 0 as |z| → ∞ (saturation). ReLU: f′(z) = 1 for z > 0 → no shrinking in the positive region. Gradients can flow through many ReLU layers without vanishing.
+- **Initialization and dead neurons** — ReLU is “dead” when z < 0 always → output 0, gradient 0. Bad init (small W, large −b) keeps most z < 0 → 100% dead. He init (W scaled by √(2/n_in)) spreads z around 0 so many neurons fire.
+
+### Gradient check: what and why
+
+**Purpose:** Verify that analytical (backprop) gradients match the true derivative. If backprop has a bug (wrong formula, shape error), training will fail. Gradient check catches this before wasting compute.
+
+**Formula (central difference):**
+$$
+\frac{\partial L}{\partial \theta} \approx \frac{L(\theta + \varepsilon) - L(\theta - \varepsilon)}{2\varepsilon}
+$$
+
+**Why add ε, subtract 2ε, add ε?** We perturb a single parameter in place:
+
+1. θ += ε → compute L(θ+ε)
+2. θ -= 2ε → now at θ−ε, compute L(θ−ε)  
+   (from θ+ε down to θ−ε = step of 2ε)
+3. θ += ε → restore original θ
+
+**Validation:** Compare analytical (from backprop) vs numerical (finite diff). Max relative error < 1e−5 ⇒ pass.
+
+### Gradient check: numerical example (linear layer, MSE)
+
+**Setup:** Single weight \(w = 0.5\), input \(x = 1\), target \(y = 1\). Loss \(L = (z - y)^2\) with \(z = wx\). ε = 1e−5.
+
+**Analytical:**
+$$
+\frac{\partial L}{\partial w} = 2(z - y) \cdot x = 2(0.5 - 1) \times 1 = -1.0
+$$
+
+| Step | Action | w | z = wx | L = (z−1)² |
+|------|--------|---|--------|------------|
+| Start | — | 0.50000 | 0.50 | 0.25 |
+| 1 | w += 1e−5 | 0.50001 | 0.50001 | **0.24999** |
+| 2 | w -= 2e−5 | 0.49999 | 0.49999 | **0.25001** |
+| 3 | w += 1e−5 | 0.50000 | (restored) | — |
+
+**Numerical gradient:**
+$$
+\frac{L(w{+}\varepsilon) - L(w{-}\varepsilon)}{2\varepsilon} = \frac{0.24999 - 0.25001}{2 \times 10^{-5}} = \frac{-0.00002}{0.00002} = -1.0
+$$
+
+**Match.** Analytical = −1.0, numerical = −1.0. For a full NN layer, we repeat this for every element of W and b, compare each, and report the max relative error across all parameters.
 
 ### What was difficult
 
-- (To be filled as you reflect)
+- **Gradient check mechanics** — The add ε / subtract 2ε / add ε sequence was initially opaque. Why 2ε? The jump: we need L(θ−ε) but are at θ+ε; to reach θ−ε we must step back 2ε. Once visualized as “perturb up, perturb down, restore,” it clicked.
 
 ### What I would do differently
 
@@ -222,8 +265,7 @@ Use this structure for each journal entry:
 
 ### Open questions
 
-- Why is vanishing gradient more severe in deeper networks?
-- How does ReLU address gradient flow vs sigmoid?
-- Role of initialization in avoiding dead neurons?
+- He vs Xavier: when to use which? (He for ReLU, Xavier for sigmoid/tanh.)
+- How do skip connections (ResNet) change gradient flow in very deep nets?
 
 ---
