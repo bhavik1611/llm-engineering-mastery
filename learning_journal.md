@@ -268,4 +268,62 @@ $$
 - He vs Xavier: when to use which? (He for ReLU, Xavier for sigmoid/tanh.)
 - How do skip connections (ResNet) change gradient flow in very deep nets?
 
+### Note: Initialization quirks on small problems (XOR)
+
+On very small datasets (e.g., 4-point XOR or even 100-sample XOR), initialization behavior can diverge from textbook expectations:
+
+- **Seed sensitivity**: Different random seeds can strongly change which init "wins." Xavier may get stuck on a plateau; Very Large (std=5) can sometimes converge due to a favorable basin.
+- **He + sigmoid mismatch**: He is designed for ReLU (zeros half the activations). With sigmoid, nothing is zeroed—He effectively overscales, which can worsen saturation or produce erratic behavior.
+- **Use ReLU hidden + sigmoid output**: For canonical "expected" results, use ReLU in hidden layers and sigmoid at the output. Then He and Xavier both behave predictably; Very Large (std=10) fails clearly.
+- **Gradient norms at convergence**: End-of-training gradient norms are inverse to loss—converged models have small gradients; stuck models can have larger gradients. This can seem counter-intuitive.
+
+---
+
+## Entry: 2026-02-20 — M2 NN Deep Dive Laboratory
+
+This entry documents the **NN Deep Dive Laboratory** notebook: a comprehensive exploration of initialization, activation depth, loss landscapes, and gradient dynamics using pure NumPy + Matplotlib. The lab uses the two-moons dataset and a modular `MultiLayerNN` with configurable layer specs, activations, and initialization.
+
+### What I learned
+
+**1. Initialization effects (Section 1)**  
+Four strategies (Xavier, He, Small, Large) are compared on a 3-layer ReLU-hidden + sigmoid-output network. The **loss curve animation** shows how each strategy converges over epochs on a log scale. Small init causes collapse (tiny activations, slow learning); Large init can overshoot or diverge. Xavier and He converge cleanly. Why Very Large sometimes converges on small networks: limited depth, sigmoid output, and favorable basins can still allow recovery—but it is fragile.
+
+**2. Activation depth and gradient flow (Section 2)**  
+Sigmoid vs ReLU at depths 2, 3, 5 layers. The **gradient norms animation** plots mean gradient norm per layer evolving over training. Sigmoid: gradients vanish toward early layers as depth increases (multiplicative σ′(z) ≤ 0.25 per layer). ReLU: gradients flow more consistently (derivative 1 for z > 0). Bar charts make the layer-wise gradient collapse visible over time.
+
+**3. Dead neuron heatmap**  
+A ReLU network with bad init (e.g. `weight_init_std=1e-3`) is trained while recording mean activation per neuron per epoch. Heatmap: rows = neurons, columns = epochs, color = mean activation (viridis). Dark rows = dead neurons (output ≈ 0). The animation reveals the path from initialization through training. Bad init keeps most neurons in the dead zone; good init (He/Xavier) keeps them active.
+
+**4. Loss landscape (Section 3)**  
+A 2–2–1 network provides a 2D slice of the loss surface: perturb W₁[0,0] and W₁[1,0] and compute loss. The **training trajectory animation** shows a white circle and grey line: the path from initialization to the final weights. The white circle is the **end-of-training** position. A separate run with a different seed records the trajectory; the contour plot shows where optimization converged. Non-convexity (saddle points, multiple basins) is visible. The red star (reference trained params) was removed to avoid confusion—only the animated trajectory remains.
+
+**5. Explosion and vanishing (Section 4)**  
+Deep sigmoid networks (2–8 layers) with Xavier vs Large init. Xavier: vanishing gradients (early layers receive tiny updates). Large: exploding gradients. The **animation** shows gradient norms per layer evolving over training—vanishing vs explosion in real time.
+
+**6. Animations and implementation details**  
+- `matplotlib.animation.FuncAnimation` with `HTML(anim.to_jshtml())` for Jupyter playback.  
+- **BarContainer blit fix**: With `blit=True`, `init_func` and `update` must return Artist objects. `ax.bar()` returns a `BarContainer`, which lacks `set_animated`. Return `list(bars.patches) + list(bars_relu.patches)` (the Rectangle artists) instead of the BarContainers.  
+- `blit=False` for heatmap and other plots that update titles or axes each frame.
+
+### What was difficult
+
+- Debugging why Bar charts failed with `blit=True` (`AttributeError: 'BarContainer' object has no attribute 'set_animated'`).  
+- Clarifying the loss landscape plot: the white circle is the trajectory endpoint (end-of-training), not an intermediate state—the red star (nn_landscape reference) was removed to reduce confusion.
+
+### What I would do differently
+
+- Add a brief markdown header before each animation cell to explain what it illustrates.  
+- Consider storing per-neuron activations in `MultiLayerNN.fit()` via an optional `track_activations` flag to avoid custom training loops for heatmap demos.
+
+### Connections to prior work
+
+- M1 optimization geometry: loss as a surface, contours, gradient direction. The loss landscape section applies this to neural networks.  
+- M1 vanishing gradient: the depth experiments and gradient norm animations make the chain-rule multiplication concrete.  
+- ReLU vs sigmoid: the dead neuron heatmap and saturation/dead % printouts extend this comparison.
+
+### Open questions
+
+- How would the loss landscape look for a larger network (more parameters)? Projection methods (e.g. PCA on weight space) could help.  
+- Can we animate the explosion/vanishing comparison across multiple depths in one view?
+
 ---
