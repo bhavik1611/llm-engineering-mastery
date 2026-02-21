@@ -51,6 +51,10 @@ class Layer:
             scale = 1.0
         elif initialization == "constant":
             scale = 0.01
+        elif initialization == "small":
+            scale = 1e-6
+        elif initialization == "large":
+            scale = 5.0
         else:
             scale = 0.01
 
