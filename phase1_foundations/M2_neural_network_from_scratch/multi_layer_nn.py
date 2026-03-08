@@ -13,10 +13,16 @@ Usage (per-layer activation):
 Usage (layer_dims + single activation):
     nn = MultiLayerNN([2, 4, 4, 1], activation="sigmoid", initialization="xavier")
     nn = MultiLayerNN([2, 4, 1], activation="relu", weight_init_std=1e-6)
+
+Usage (with optimizer):
+    from optimisers import Adam, Momentum
+    nn = MultiLayerNN([2, 10, 1], optimizer=Adam(lr=0.01), ...)
+    nn = MultiLayerNN([2, 10, 1], optimizer="adam", learning_rate=0.01, ...)
 """
 
 import numpy as np
 from layer import Layer
+from optimisers import SGD, get_optimizer
 
 
 def _is_layer_specs(obj):
@@ -65,11 +71,13 @@ class MultiLayerNN:
             activation: (when using layer_dims) "sigmoid" | "relu" | "tanh" for all layers
             initialization: "xavier" | "he" | "normal" | "constant" | "small" | "large"
             weight_init_std: if set, overrides initialization with this scale
-            learning_rate: learning rate for gradient descent
+            learning_rate: learning rate (used for SGD when optimizer=None, or when optimizer is string)
+            optimizer: None (default SGD), Optimizer instance, or string ("sgd", "momentum", "rmsprop", "adam")
             seed: random seed for reproducibility
         """
         seed = kwargs.get("seed", None)
         learning_rate = kwargs.get("learning_rate", 0.1)
+        optimizer = kwargs.get("optimizer", None)
         initialization = kwargs.get("initialization", "xavier")
         weight_init_std = kwargs.get("weight_init_std", None)
         if seed is not None:
@@ -89,6 +97,13 @@ class MultiLayerNN:
 
         self.learning_rate = learning_rate
         self.layer_specs = layer_specs
+        # Resolve optimizer: None -> SGD(lr), str -> get_optimizer(name, lr=...), else use as-is
+        if optimizer is None:
+            self._optimizer = SGD(lr=learning_rate)
+        elif isinstance(optimizer, str):
+            self._optimizer = get_optimizer(optimizer, lr=learning_rate)
+        else:
+            self._optimizer = optimizer
         if not layer_specs:
             raise ValueError("At least one layer required (e.g. layer_dims with >= 2 dims)")
         self._layer_dims = [s[0] for s in layer_specs] + [layer_specs[-1][1]]
@@ -134,6 +149,11 @@ class MultiLayerNN:
             y = y.reshape(-1, y_hat.shape[1])
         loss = -np.mean(y * np.log(y_hat) + (1. - y) * np.log(1. - y_hat))
         return float(loss)
+
+    @property
+    def optimizer(self):
+        """The optimizer used for parameter updates."""
+        return self._optimizer
 
     @property
     def weights(self):
@@ -203,15 +223,13 @@ class MultiLayerNN:
 
     def update_params(self, wGrads, bGrads):
         """
-        Update the parameters of the network.
+        Update the parameters of the network using the configured optimizer.
 
         Args:
             wGrads: list of weight gradients
             bGrads: list of bias gradients
         """
-        for layer, dW, db in zip(self.layers, wGrads, bGrads):
-            layer.weights -= self.learning_rate * dW
-            layer.biases -= self.learning_rate * db
+        self._optimizer.step(self.layers, wGrads, bGrads)
 
     def fit(self, x, y, epochs, **kwargs):
         """

@@ -1,5 +1,16 @@
 # M2: Neural Network from Scratch
 
+## Modules
+
+| File | Description |
+|------|-------------|
+| `layer.py` | Fully-connected layer (linear + activation) |
+| `activations.py` | Sigmoid, ReLU, Tanh |
+| `multi_layer_nn.py` | Multi-layer NN with backprop |
+| `optimisers.py` | SGD, Momentum, RMSProp, Adam for training |
+
+Usage with optimizers: `MultiLayerNN(..., optimizer="adam", learning_rate=0.01)` or `optimizer=Adam(lr=0.01)`.
+
 ## Problem Statement
 
 Implement a multi-layer neural network with at least one hidden layer from first principles. Use only NumPy (or equivalent) for matrix operations. Train using backpropagation to compute gradients and gradient descent to update parameters. Verify gradients numerically.

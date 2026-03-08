@@ -301,6 +301,7 @@ A 2–2–1 network provides a 2D slice of the loss surface: perturb W₁[0,0] a
 Deep sigmoid networks (2–8 layers) with Xavier vs Large init. Xavier: vanishing gradients (early layers receive tiny updates). Large: exploding gradients. The **animation** shows gradient norms per layer evolving over training—vanishing vs explosion in real time.
 
 **6. Animations and implementation details**  
+
 - `matplotlib.animation.FuncAnimation` with `HTML(anim.to_jshtml())` for Jupyter playback.  
 - **BarContainer blit fix**: With `blit=True`, `init_func` and `update` must return Artist objects. `ax.bar()` returns a `BarContainer`, which lacks `set_animated`. Return `list(bars.patches) + list(bars_relu.patches)` (the Rectangle artists) instead of the BarContainers.  
 - `blit=False` for heatmap and other plots that update titles or axes each frame.
