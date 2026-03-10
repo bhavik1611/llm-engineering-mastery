@@ -6,6 +6,7 @@
 |------|-------------|
 | `layer.py` | Fully-connected layer (linear + activation) |
 | `activations.py` | Sigmoid, ReLU, Tanh |
+| `two_layer_nn.py` | Two-layer NN for gradient check and XOR experiments |
 | `multi_layer_nn.py` | Multi-layer NN with backprop |
 | `optimisers.py` | SGD, Momentum, RMSProp, Adam for training |
 

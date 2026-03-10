@@ -123,11 +123,13 @@ Common metrics by phase:
 **Objective:** Verify analytical gradients match numerical (finite-difference) gradients.
 
 ### Setup
+
 - Model: TwoLayerNN (2, 3, 1), sigmoid activations, BCE loss
 - Data: Random 8×2 inputs, random binary labels
 - epsilon: 1e-5 for finite difference
 
 ### Metrics
+
 | Parameter | Max Relative Error |
 |-----------|--------------------|
 | W1 | ~3e-8 |
@@ -136,7 +138,18 @@ Common metrics by phase:
 | b2 | ~2e-11 |
 | **Overall** | **< 1e-5** |
 
+### Visualization
+
+| File | Purpose |
+|------|---------|
+| m2_gradient_check.png | Analytical vs numerical gradients per parameter |
+
+### Notebook
+
+- Source: `phase1_foundations/M2_neural_network_from_scratch/M2_experiments_and_visualizations.ipynb`
+
 ### Conclusion
+
 - PASS: Analytical and numerical gradients match within tolerance.
 
 ---
@@ -148,24 +161,76 @@ Common metrics by phase:
 **Objective:** Train 2-layer NN on XOR; compare with 1-layer (logistic regression).
 
 ### Setup
+
 - 2-layer: input_dim=2, hidden_dim=8, lr=0.5, weight_init_std=0.5, 5000 epochs
 - 1-layer: logistic regression, lr=0.5, 5000 epochs
 - Data: XOR dataset (100 samples, 4 corners, class 0 at (0,0)/(1,1), class 1 at (0,1)/(1,0))
 
 ### Metrics
+
 | Model | XOR Train Accuracy | Final Loss |
 |-------|--------------------|------------|
 | 1-layer (linear) | ~50% (random) | ~0.69 |
 | 2-layer (non-linear) | ~100% | < 0.1 |
 
 ### Visualization
+
 | File | Purpose |
 |------|---------|
 | m2_xor_data.png | XOR dataset scatter |
 | m2_loss_and_decision_boundary.png | Loss curve + 2-layer decision boundary |
 | m2_depth_comparison_loss.png | 1-layer vs 2-layer loss curves; 1-layer decision boundary |
 | m2_2layer_decision_boundary.png | 2-layer non-linear boundary |
-| m2_gradient_check.png | Analytical vs numerical gradients per parameter |
+| m2_vanishing_gradient_depth.png | Gradient magnitude vs network depth (reflection) |
+| m2_relu_vs_sigmoid.png | ReLU vs sigmoid gradient flow (reflection) |
+| m2_dead_neurons_init.png | Dead neuron heatmap with bad init (reflection) |
+
+### Notebook
+
+- Source: `phase1_foundations/M2_neural_network_from_scratch/M2_experiments_and_visualizations.ipynb`
 
 ### Conclusion
+
 - 2-layer NN solves XOR; 1-layer cannot. Depth enables non-linear decision boundaries.
+
+---
+
+## Experiment: M2 Initialization & Deep Dive
+
+**Date:** 2026-02-20
+**Milestone:** M2_neural_network_from_scratch
+**Objective:** Explore initialization strategies, activation depth, loss landscapes, and gradient dynamics using MultiLayerNN on two-moons.
+
+### Setup
+
+- Model: MultiLayerNN with configurable layer specs, per-layer activations
+- Data: Two-moons dataset
+- Initialization: Xavier, He, Small, Large compared
+- Sections: Init effects, activation depth (sigmoid vs ReLU), dead neurons, loss landscape, explosion/vanishing
+
+### Metrics
+
+| Init | Convergence | Notes |
+|------|-------------|-------|
+| Xavier | ✓ Clean | Suitable for sigmoid/tanh |
+| He | ✓ Clean | Preferred for ReLU |
+| Small | ✗ Collapse | Tiny activations, slow/no learning |
+| Large | ✗ Overshoot/divergence | Fragile on small nets |
+
+### Visualization
+
+| Section | Output | Purpose |
+|---------|--------|---------|
+| 1. Initialization | Loss curve animation | Xavier/He vs Small/Large convergence |
+| 2. Activation depth | Gradient norms animation | Sigmoid vanishing vs ReLU flow at 2/3/5 layers |
+| 3. Dead neurons | Activation heatmap animation | Bad init → dark rows (dead ReLUs) |
+| 4. Loss landscape | Trajectory animation | 2D weight slice, non-convexity, basins |
+| 5. Explosion/vanishing | Gradient norms animation | Deep sigmoid (Xavier vs Large) |
+
+### Notebook
+
+- Source: `phase1_foundations/M2_neural_network_from_scratch/M2_initialization_experiments.ipynb`
+
+### Conclusion
+
+- Xavier and He converge cleanly; Small init causes collapse; Large can diverge. Sigmoid gradients vanish with depth; ReLU preserves flow. Bad initialization produces dead ReLU neurons.
