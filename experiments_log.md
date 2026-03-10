@@ -71,14 +71,14 @@ Common metrics by phase:
 
 ## Experiment: M1 Logistic Regression - Main Run
 
-**Date:** 2026-02-13
+**Date:** 2026-02-13 (updated 2026-03-10)
 **Milestone:** M1_logistic_regression
-**Objective:** Baseline logistic regression on linearly separable 2D data.
+**Objective:** Baseline logistic regression on linearly separable 2D data, with full evaluation suite.
 
 ### Setup
 
 - Model: Logistic regression (BCE, sigmoid), gradient descent
-- Data: Synthetic 2D blobs, 80/20 train/test split
+- Data: Synthetic 2D blobs (`generate_linearly_separable`), 80/20 train/test split
 - Optimization: lr=0.5, epochs=200
 
 ### Metrics
@@ -87,16 +87,32 @@ Common metrics by phase:
 |--------|-------|
 | Train Accuracy | 100.0% |
 | Test Accuracy | 100.0% |
-| Final BCE Loss (train) | 0.0000 |
+| Final BCE Loss (train) | ~0.0000 |
+| AUC (ROC) | 1.0 |
+
+### Observations
+
+- Linearly separable data: model converges quickly with lr=0.5
+- LR ablation: lr=0.01 converges slowly; lr=0.5 optimal; lr=2.0 may oscillate but can still converge on this simple task
 
 ### Visualization
 
-- Path: `visualizations/m1_*.png`
-- Plots: loss curve, decision boundary, learning rate ablation, confusion matrix
+| File | Purpose |
+|------|---------|
+| `visualizations/m1_loss_and_grad_norm.png` | Loss and gradient norm vs epoch |
+| `visualizations/m1_linear_model_boundary.png` | 2D decision boundary and data |
+| `visualizations/m1_decision_boundary_evolution.png` | Boundary evolution during training |
+| `visualizations/m1_learning_rate_ablation.png` | Loss curves for lr=0.01, 0.5, 2.0 |
+| `visualizations/m1_confusion_matrix.png` | TN, FP, FN, TP on test set |
+| `visualizations/m1_roc_curve.png` | ROC curve with AUC |
+
+### Notebook
+
+- Source: `phase1_foundations/M1_logistic_regression/logistic_regression_full_flow.ipynb`
 
 ### Conclusion
 
-- Baseline run complete. Train and test accuracy reported.
+- PASS: M1 complete. All required visualizations generated; ROC/AUC computed.
 
 ---
 

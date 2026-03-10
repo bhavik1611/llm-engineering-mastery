@@ -328,3 +328,121 @@ Deep sigmoid networks (2–8 layers) with Xavier vs Large init. Xavier: vanishin
 - Can we animate the explosion/vanishing comparison across multiple depths in one view?
 
 ---
+
+## Entry: 2025-03-08 — M3 Optimization Dynamics Laboratory
+
+### What I learned
+
+- **Optimization as movement** — Parameters move through loss space; gradient = steepest ascent direction, we step opposite. Trajectory = path; contours = constant-loss regions.
+- **Learning rate effects** — Small η: slow but stable. Good η: efficient convergence. Large η: overshoot, oscillation, divergence.
+- **Curvature and ill-conditioning** — Elliptical valleys ($a \gg b$ in $L = a(w_1-1)^2 + b(w_2-2)^2$) cause zig-zag. Condition number $a/b$; high = narrow valley, slow descent.
+- **Momentum** — $v \leftarrow \beta v + \nabla L$, $\theta \leftarrow \theta - \eta v$. Smooths oscillations, helps along shallow directions.
+- **Adaptive methods** — RMSProp: per-parameter scaling via $g^2$; Adam: momentum + RMSProp with bias correction. Often faster on ill-conditioned surfaces.
+- **Saddle points** — $L = w_1^2 - w_2^2$ at origin: min in one direction, max in another. Flat regions slow progress.
+- **3D visualizations** — Ill-conditioned surface + trajectory + rotation animations clarify zig-zag behavior.
+- **NN training** — Same patterns: SGD zig-zags; momentum/Adam converge faster on moons.
+
+### Numerical workings: optimiser internals (small 2D example)
+
+**Setup:** $L(w_1, w_2) = (w_1-1)^2 + (w_2-2)^2$, $\nabla L = [2(w_1-1),\ 2(w_2-2)]$. Start $\mathbf{w}_0 = [2,\ 0]$. Gradient $\mathbf{g}_0 = [2,\ -4]$.
+
+**Step 1 (all optimizers):**
+
+**SGD (η=0.1):**
+$$\mathbf{w}_1 = \mathbf{w}_0 - \eta \mathbf{g}_0 = [2, 0] - 0.1 \cdot [2, -4] = [1.8,\ 0.4]$$
+
+**Momentum (η=0.1, β=0.9):**
+
+- $\mathbf{v}_1 = \beta \mathbf{v}_0 + \mathbf{g}_0 = 0.9 \cdot [0,0] + [2,-4] = [2,\ -4]$
+- $\mathbf{w}_1 = \mathbf{w}_0 - \eta \mathbf{v}_1 = [1.8,\ 0.4]$ (same as SGD when v₀=0)
+
+**RMSProp (η=0.1, ρ=0.9, ε=1e-8):**
+
+- Here, $\mathbf{g}_0 = [2,\ -4]$ — so componentwise, $g_{0,1} = 2$, $g_{0,2} = -4$.
+- **Why is $\mathbf{g}^2_0 = [0, 0]$?** On the *first* step of RMSProp, the running average of squared gradients ($\mathbf{g}^2_0$) is initialized to zeros, *not* the current squared gradient. So,
+  $$
+  \mathbf{g}^2_1 = \rho \mathbf{g}^2_0 + (1-\rho) \mathbf{g}_0^2 = 0.9 \cdot [0, 0] + 0.1 \cdot [4, 16] = [0.4, 1.6]
+  $$
+  where $\mathbf{g}_0 = [2, -4]$ and $\mathbf{g}_0^2 = [4, 16]$. This is why the initial moving average is $[0, 0]$ even though the actual gradient is $[2, -4]$.
+- $\mathbf{w}_1 = \mathbf{w}_0 - \eta \frac{\mathbf{g}_0}{\sqrt{\mathbf{g}^2_1} + \epsilon} = [2,0] - 0.1 \cdot \frac{[2,-4]}{[\sqrt{0.4}, \sqrt{1.6}]} \approx [2,0] - [0.316,-0.316] = [1.684, 0.316]$
+- So $w_2$ (second coordinate) gets a *smaller* step than SGD because $g_{0,2}^2 = 16$ (large) → $\sqrt{g^2}$ scales down the update.
+
+**Adam (η=0.1, β₁=0.9, β₂=0.999, t=1):**
+
+- $\mathbf{m}_1 = \beta_1 \mathbf{m}_0 + (1-\beta_1)\mathbf{g}_0 = [0.2,\ -0.4]$
+- $\mathbf{v}_1 = \beta_2 \mathbf{v}_0 + (1-\beta_2)\mathbf{g}_0^2 = [0.004,\ 0.016]$
+- $\hat{\mathbf{m}}_1 = \mathbf{m}_1 / (1-\beta_1^1) = [0.2,\ -0.4] / 0.1 = [2,\ -4]$
+- $\hat{\mathbf{v}}_1 = \mathbf{v}_1 / (1-\beta_2^1) = [0.004,\ 0.016] / 0.001 = [4,\ 16]$
+- step $= \eta \cdot \hat{\mathbf{m}}_1 / \sqrt{\hat{\mathbf{v}}_1} = 0.1 \cdot [2,-4] / [2, 4] = [0.1,\ -0.1]$
+- $\mathbf{w}_1 = [2,0] - [0.1, -0.1] = [1.9,\ 0.1]$
+
+**Step 2 — Momentum builds velocity:**
+
+- $\mathbf{g}_1 = [2(1.8-1),\ 2(0.4-2)] = [1.6,\ -3.2]$
+- $\mathbf{v}_2 = 0.9 \cdot [2,-4] + [1.6,-3.2] = [3.4,\ -6.8]$ (velocity accumulates)
+- $\mathbf{w}_2^{\text{momentum}} = [1.8, 0.4] - 0.1 \cdot [3.4, -6.8] = [1.46,\ 1.08]$
+- $\mathbf{w}_2^{\text{SGD}} = [1.8, 0.4] - 0.1 \cdot [1.6, -3.2] = [1.64,\ 0.72]$
+
+Momentum takes a larger step (1.46 vs 1.64 in w₁) because v carries past gradient info.
+
+**Tiny NN (2-2-1) — one weight, one step:**
+
+Param W₁[0,0], ∂L/∂θ = +0.12:
+
+- **SGD:** step = −η·g = −0.012
+- **Momentum (v₀=0):** v₁ = g = 0.12; step = −0.012 (same as SGD initially)
+- **Adam (t=1):** m₁=0.012, v₁=0.0000144 → m̂=0.12, v̂=0.0144, √v̂=0.12 → step = −η·m̂/√v̂ = −0.1·(0.12/0.12) = −0.1. Adam’s first step can be *larger* than SGD when v̂ is small (cold start).
+
+Adam’s first-step magnitude can exceed SGD when v̂ is small (cold start). Bias correction $\hat{v} = v/(1-\beta_2^t)$ corrects this over time.
+
+### What was difficult
+
+- Connecting 2D loss intuition to high-dimensional NN landscapes.
+- Balancing animation vs static plots for clarity.
+
+### What I would do differently
+
+- Add gradient-arrow overlays to trajectory animations.
+- Try a saddle with a nearby minimum to show slow escape.
+
+### Connections to prior work
+
+- M1 optimization geometry: contours, curvature, conditioning. M3 extends to momentum and adaptive optimizers.
+- M2 backprop: gradients from backprop; M3 shows different ways to use them.
+
+### Open questions
+
+- Formal link between Adam’s second moment and Hessian/curvature?
+- Systematic optimizer + learning-rate selection?
+
+---
+
+## Entry: 2025-03-08 — M2 Optimisers Module and Integration
+
+### What I learned
+
+- **Optimizer abstraction** — Single interface: `step(layers, wGrads, bGrads)`. Separates backprop from update logic.
+- **Stateful optimizers** — Momentum: v per param. Adam: m, v with bias correction $\hat{m} = m/(1-\beta_1^t)$, $\hat{v} = v/(1-\beta_2^t)$. State init’d lazily on first step.
+- **Integration** — `optimizer=None` (SGD), string (`"adam"`), or instance. `update_params()` delegates to `optimizer.step()`.
+- **Backward compatibility** — Default = SGD; existing code unchanged.
+
+### What was difficult
+
+- API simplicity vs flexibility (string vs instance).
+- Adam defaults (β₁=0.9, β₂=0.999) to match common practice.
+
+### What I would do differently
+
+- Optional weight decay for L2.
+
+### Connections to prior work
+
+- M3 lab: same update rules in 2D; optimisers.py moves them into M2.
+- MultiLayerNN: same forward/backward; only update step changes.
+
+### Open questions
+
+- Learning-rate schedules (decay) with current interface?
+- Mini-batch vs full-batch for these implementations?
+
+---

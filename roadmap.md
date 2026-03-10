@@ -16,6 +16,7 @@ This document defines the progression rules, learning objectives, and exit crite
 **High-level description:** Build the mathematical and computational foundations for deep learning. Understand gradients, backpropagation, and the mechanics of autodiff frameworks.
 
 **Learning objectives:**
+
 - Derive and implement gradient descent for a simple model
 - Build a neural network with backpropagation from scratch
 - Compare optimizer behaviors (SGD, momentum, Adam)
@@ -37,6 +38,7 @@ This document defines the progression rules, learning objectives, and exit crite
 **High-level description:** Implement attention and transformer blocks from first principles. Build a small autoregressive GPT to understand the architecture end-to-end.
 
 **Learning objectives:**
+
 - Implement scaled dot-product attention with masking
 - Assemble a transformer block (attention + MLP + norms)
 - Train a small GPT on a corpus and validate generation
@@ -56,6 +58,7 @@ This document defines the progression rules, learning objectives, and exit crite
 **High-level description:** Move from toy models to real LLM training pipelines. Cover tokenization, pretraining, parameter-efficient fine-tuning, and retrieval-augmented generation.
 
 **Learning objectives:**
+
 - Implement a tokenizer (BPE or similar)
 - Pretrain a small GPT from scratch
 - Fine-tune with LoRA
@@ -77,6 +80,7 @@ This document defines the progression rules, learning objectives, and exit crite
 **High-level description:** Apply LLMs to real-world systems: tool use, multi-agent coordination, and a capstone project integrating prior work.
 
 **Learning objectives:**
+
 - Implement an agent that calls external tools
 - Design and build a multi-agent system
 - Complete a capstone project demonstrating end-to-end LLM engineering

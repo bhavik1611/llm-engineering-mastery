@@ -15,7 +15,7 @@ def generate_linearly_separable(n_per_class=50):
     y = np.concatenate([y0, y1])
     return X, y
 
-def plot_x_y(X, y):
+def plot_x_y(X, y, save_path=None):
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.scatter(X[y == 0, 0], X[y == 0, 1], c='#e74c3c', label='Class 0', edgecolors='black', linewidths=0.5)
     ax.scatter(X[y == 1, 0], X[y == 1, 1], c='#3498db', label='Class 1', edgecolors='black', linewidths=0.5)
@@ -25,6 +25,8 @@ def plot_x_y(X, y):
     ax.legend()
     ax.set_aspect('equal')
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=120, bbox_inches='tight')
     plt.show()
 
 # Train/test split (80/20)
