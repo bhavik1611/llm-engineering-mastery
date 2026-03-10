@@ -23,3 +23,10 @@ Build deep intuition about how optimization works in machine learning and deep l
 ## Running the Notebook
 
 Ensure you are in the `M3_optimization_dynamics` directory when running the notebook (or that the working directory allows the M2 path to be found via `os.path.dirname(os.getcwd())`).
+
+## Completion Checklist
+
+- [x] Optimizer comparison (SGD, Momentum, Adam) on 2D loss and NN training
+- [x] Ablation documented in `experiments_log.md`
+- [x] Visualizations in `visualizations/`
+- [x] Journal entry in `learning_journal.md`

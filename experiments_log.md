@@ -106,6 +106,15 @@ Common metrics by phase:
 | `visualizations/m1_confusion_matrix.png` | TN, FP, FN, TP on test set |
 | `visualizations/m1_roc_curve.png` | ROC curve with AUC |
 
+### Findings by Visualization
+
+- **m1_loss_and_grad_norm**: Loss drops to near zero within ~50–100 epochs; gradient norm collapses as model converges. When confident and correct, gradients shrink—validating the "small gradients at convergence" intuition from the math.
+- **m1_linear_model_boundary**: Single linear hyperplane cleanly separates the two blob classes. Points near the boundary are correctly classified; no margin violations for linearly separable data.
+- **m1_decision_boundary_evolution**: The boundary rotates and translates over epochs, moving from a poor initial guess to the final separating line. Shows how gradient descent refines parameters step by step.
+- **m1_learning_rate_ablation**: lr=0.01 decays slowly; lr=0.5 converges fast and smoothly; lr=2.0 may show small oscillations but still reaches the minimum on this convex problem.
+- **m1_confusion_matrix**: On linearly separable data, expect zeros off the diagonal (perfect classification). Any non-zero off-diagonal counts indicate misclassifications.
+- **m1_roc_curve**: AUC=1.0 for perfect separation. Curve hugs the top-left corner; threshold sweep shows that many cutoffs achieve 100% TPR and 0% FPR.
+
 ### Notebook
 
 - Source: `phase1_foundations/M1_logistic_regression/logistic_regression_full_flow.ipynb`
@@ -143,6 +152,10 @@ Common metrics by phase:
 | File | Purpose |
 |------|---------|
 | m2_gradient_check.png | Analytical vs numerical gradients per parameter |
+
+### Findings by Visualization
+
+- **m2_gradient_check**: Bar chart per parameter (W1, b1, W2, b2). Bars should be near zero—max relative error &lt; 1e−5 confirms backprop matches finite-difference gradients. Critical sanity check before training.
 
 ### Notebook
 
@@ -184,6 +197,16 @@ Common metrics by phase:
 | m2_vanishing_gradient_depth.png | Gradient magnitude vs network depth (reflection) |
 | m2_relu_vs_sigmoid.png | ReLU vs sigmoid gradient flow (reflection) |
 | m2_dead_neurons_init.png | Dead neuron heatmap with bad init (reflection) |
+
+### Findings by Visualization
+
+- **m2_xor_data**: Four clusters at corners; class 0 at (0,0) and (1,1), class 1 at (0,1) and (1,0). No single line can separate them—visual proof of linear inseparability.
+- **m2_loss_and_decision_boundary**: Left: loss drops to &lt; 0.1 by ~2000 epochs. Right: 2-layer boundary is curved, dividing the four regions; decision surface wraps around the data.
+- **m2_depth_comparison_loss**: 1-layer loss plateaus near 0.69 (random); 2-layer converges. Left panel shows 1-layer's futile linear cut; right shows 2-layer's curved boundary solving XOR.
+- **m2_2layer_decision_boundary**: Non-linear boundary with smooth transitions; correctly separates all four XOR corners. Hidden layer learned effective features (e.g. AND, OR).
+- **m2_vanishing_gradient_depth**: Gradient norm per layer decreases exponentially with depth for sigmoid; product of σ′(z) ≤ 0.25 across layers. Explains why deep sigmoid nets are hard to train.
+- **m2_relu_vs_sigmoid**: ReLU derivatives stay at 1 for z &gt; 0; sigmoid derivatives saturate. Bar chart or curve shows sigmoid gradient collapse vs ReLU's sustained flow.
+- **m2_dead_neurons_init**: Heatmap (neurons × epochs): bad init yields dark horizontal bands (dead ReLUs, z &lt; 0 always); He init keeps neurons active (lighter, evolving patterns).
 
 ### Notebook
 
@@ -227,6 +250,14 @@ Common metrics by phase:
 | 4. Loss landscape | Trajectory animation | 2D weight slice, non-convexity, basins |
 | 5. Explosion/vanishing | Gradient norms animation | Deep sigmoid (Xavier vs Large) |
 
+### Findings by Visualization
+
+- **Section 1 (Initialization)**: Xavier and He curves descend smoothly to low loss; Small init flattens (almost no learning); Large may overshoot or diverge initially. Log-scale loss makes differences stark.
+- **Section 2 (Activation depth)**: Bar chart of gradient norm per layer over time. Sigmoid: early layers get tiny gradients as depth increases; ReLU: norms stay more uniform across layers.
+- **Section 3 (Dead neurons)**: Heatmap rows = neurons, cols = epochs. Bad init: many dark rows from the start. He/Xavier: lighter, dynamic activity; fewer permanently dead units.
+- **Section 4 (Loss landscape)**: 2D contour slice of loss; trajectory animates from init to converged weights. Non-convex: multiple basins, saddle-like regions; trajectory path depends on init.
+- **Section 5 (Explosion/vanishing)**: Xavier on deep sigmoid → vanishing (early layers near zero). Large init → exploding gradients (early layers spike). Contrast clarifies why careful init matters.
+
 ### Notebook
 
 - Source: `phase1_foundations/M2_neural_network_from_scratch/M2_initialization_experiments.ipynb`
@@ -234,3 +265,49 @@ Common metrics by phase:
 ### Conclusion
 
 - Xavier and He converge cleanly; Small init causes collapse; Large can diverge. Sigmoid gradients vanish with depth; ReLU preserves flow. Bad initialization produces dead ReLU neurons.
+
+---
+
+## Experiment: M3 Optimization Dynamics Laboratory
+
+**Date:** 2025-03-08
+**Milestone:** M3_optimization_dynamics
+**Objective:** Compare SGD, Momentum, RMSProp, and Adam on 2D loss landscapes and neural network training; document convergence behavior and ablation.
+
+### Setup
+- 2D loss: Elliptical $L = a(w_1-1)^2 + b(w_2-2)^2$ (ill-conditioned when $a \gg b$)
+- NN: MultiLayerNN on two-moons (M2 modules)
+- Optimizers: SGD (η=0.05), Momentum (β=0.9), RMSProp (ρ=0.9), Adam (β₁=0.9, β₂=0.999)
+
+### Metrics
+| Optimizer | 2D convergence | NN loss curve | Notes |
+|-----------|---------------|---------------|-------|
+| SGD | Zig-zag in valley | Oscillatory | Single global lr |
+| Momentum | Smoother path | Between SGD and Adam | Accumulates velocity |
+| RMSProp | Faster along shallow dir | — | Per-parameter scaling |
+| Adam | Fastest typically | Smoothest, fastest | Momentum + adaptive |
+
+### Visualization
+| File | Purpose |
+|------|---------|
+| m3_optimization_landscape.png | Section 1: Loss contours + gradient descent trajectory |
+| m3_ill_conditioned_zigzag.png | Section 3: Zig-zag on elliptical valley |
+| m3_sgd_vs_momentum.png | Section 4: SGD vs Momentum trajectories |
+| m3_optimizer_comparison.png | Section 5: SGD, Momentum, RMSProp, Adam paths |
+| m3_saddle_point.png | Section 6: Loss along saddle trajectory |
+| m3_nn_optimizer_comparison.png | Section 7: NN loss curves (SGD vs Momentum vs Adam) |
+
+### Findings by Visualization
+
+- **m3_optimization_landscape**: 3D surface + contour view. Trajectory (red line) crosses contours roughly perpendicularly—gradient points steepest ascent, steps go opposite. Convex quadratic: straight path to minimum.
+- **m3_ill_conditioned_zigzag**: Elongated elliptical contours; trajectory bounces between valley walls instead of going straight down. High condition number (a ≫ b) causes slow progress in the shallow direction.
+- **m3_sgd_vs_momentum**: Same valley, two paths. SGD (red): zig-zag. Momentum (cyan): smoother, more direct descent. Velocity smooths oscillations; fewer steps to reach the minimum.
+- **m3_optimizer_comparison**: Left: four optimizer trajectories on contours. Right: loss vs step (log scale). Adam and RMSProp typically reach the minimum fastest; SGD lags; Momentum sits between.
+- **m3_saddle_point**: Loss vs step for a saddle ($L = w₁² − w₂²$). Flat region near the origin—gradients small, progress slow. Illustrates why saddles (common in high-dim NNs) can stall training.
+- **m3_nn_optimizer_comparison**: BCE loss vs epoch on two-moons. Adam (magenta) converges fastest and smoothest; SGD (red) more oscillatory; Momentum (cyan) intermediate. Same 2D principles scaled to NN training.
+
+### Notebook
+- Source: `phase1_foundations/M3_optimization_dynamics/Optimization_Dynamics_Laboratory.ipynb`
+
+### Conclusion
+- Adam and Momentum outperform vanilla SGD on ill-conditioned and NN tasks. Same principles (zig-zag, momentum smoothing, per-parameter scaling) apply in 2D and high-dimensional training.
