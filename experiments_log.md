@@ -346,3 +346,32 @@ Common metrics by phase:
 
 ### Conclusion
 - PASS: Computational graph traced; manual and autograd gradients match; gradient flow and graph lifecycle (retain_graph) understood. Journal entry documents reflection answers.
+
+## Experiment: M1 Logistic Regression - Main Run
+
+**Date:** 2026-03-12
+**Milestone:** M1_logistic_regression
+**Objective:** Baseline logistic regression on linearly separable 2D data.
+
+### Setup
+
+- Model: Logistic regression (BCE, sigmoid), gradient descent
+- Data: Synthetic 2D blobs, 80/20 train/test split
+- Optimization: lr=0.5, epochs=200
+
+### Metrics
+
+| Metric | Value |
+|--------|-------|
+| Train Accuracy | 100.0% |
+| Test Accuracy | 100.0% |
+| Final BCE Loss (train) | 0.0000 |
+
+### Visualization
+
+- Path: `visualizations/m1_*.png`
+- Plots: loss curve, decision boundary, learning rate ablation, confusion matrix
+
+### Conclusion
+
+- Baseline run complete. Train and test accuracy reported.
