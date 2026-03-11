@@ -9,3 +9,4 @@ ipykernel>=6.0.0
 
 # Deep learning (Phase 1: M4, Phase 2–4)
 torch>=2.0.0
+torchviz>=0.0.2  # M4: computational graph visualization (also requires graphviz: brew install graphviz)

@@ -311,3 +311,38 @@ Common metrics by phase:
 
 ### Conclusion
 - Adam and Momentum outperform vanilla SGD on ill-conditioned and NN tasks. Same principles (zig-zag, momentum smoothing, per-parameter scaling) apply in 2D and high-dimensional training.
+
+---
+
+## Experiment: M4 PyTorch Autograd Trace
+
+**Date:** 2026-03-10
+**Milestone:** M4_pytorch_internal_mechanics
+**Objective:** Trace the computational graph for a 2-layer MLP, verify manual gradients match autograd, and document gradient flow.
+
+### Setup
+- Model: 2-layer MLP (2→3→1), manual forward pass (no nn.Module)
+- Data: Fixed 4×2 input, 4×1 target
+- Loss: BCE
+- Lab: M4_autograd_trace.ipynb (Coursera-style fill-in)
+
+### Metrics
+| Check | Result |
+|-------|--------|
+| Tensor shapes printed | z1(4,3), a1(4,3), z2(4,1), y_hat(4,1) |
+| Gradient shapes | W1.grad(2,3), b1.grad(3,), W2.grad(3,1), b2.grad(1,) |
+| Manual ∂L/∂W2 vs W2.grad | Match (torch.allclose) |
+| retain_graph experiment | Second backward fails without retain_graph=True |
+
+### Visualization
+| File / Location | Purpose |
+|-----------------|---------|
+| `visualizations/m4_computational_graph.png` | Autograd graph (torchviz) for 2-layer MLP |
+| Graph trace (notebook Section 3) | Computational graph: X→z1→a1→z2→y_hat→loss |
+| Shape table (notebook Section 4) | Tensor and gradient shapes at each step |
+
+### Notebook
+- Source: `phase1_foundations/M4_pytorch_internal_mechanics/M4_autograd_trace.ipynb`
+
+### Conclusion
+- PASS: Computational graph traced; manual and autograd gradients match; gradient flow and graph lifecycle (retain_graph) understood. Journal entry documents reflection answers.

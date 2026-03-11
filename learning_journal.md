@@ -446,3 +446,38 @@ Adam’s first-step magnitude can exceed SGD when v̂ is small (cold start). Bia
 - Mini-batch vs full-batch for these implementations?
 
 ---
+
+## Entry: 2026-03-10 — M4 PyTorch Autograd Trace
+
+### What I learned
+
+**1. When does PyTorch free the computational graph?**  
+PyTorch frees the graph as soon as `loss.backward()` finishes (unless `retain_graph=True`). Gradients are computed in reverse, stored on leaf tensors; intermediate activations are only needed during the backward pass. Once backward completes, they’re released to save memory. That’s why a second `loss.backward()` without re-running forward raises "RuntimeError: Trying to backward through the graph a second time". With `retain_graph=True`, the graph is kept so you can call backward again.
+
+**2. Why do only leaf tensors with `requires_grad=True` get `.grad` populated?**  
+Leaf tensors are tensors not created by operations on other tensors (e.g. parameters W1, b1). PyTorch only stores gradients for leaf tensors because: (a) intermediate tensors (z1, a1) need gradients only transiently during backprop—storing them wastes memory; (b) we only update leaf parameters in training, so those gradients matter; (c) non-leaf tensors flow gradients through but don’t need `.grad` stored. Only tensors marked `requires_grad=True` are considered for gradient tracking.
+
+**3. How to implement a custom operation so gradients flow through it?**  
+Subclass `torch.autograd.Function` and define `forward` and `backward`:
+
+```python
+class MyOp(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, other_args):
+        ctx.save_for_backward(x)
+        return output
+    @staticmethod
+    def backward(ctx, grad_output):
+        x, = ctx.saved_tensors
+        grad_input = ...  # chain rule
+        return grad_input, None
+```
+
+Use `MyOp.apply(x, ...)`. PyTorch invokes `backward` when building the graph; you receive ∂L/∂output and return ∂L/∂input so gradients propagate correctly.
+
+### Connections to prior work
+
+- M2 backprop: same chain rule; PyTorch automates what we did by hand. Leaf vs intermediate tensors mirror parameter vs activation gradients.
+- M1–M3 gradients: manual ∂L/∂W matches `.grad` when the math is correct; autograd is a sanity check.
+
+---

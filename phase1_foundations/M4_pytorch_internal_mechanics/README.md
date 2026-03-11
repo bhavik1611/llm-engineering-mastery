@@ -50,8 +50,8 @@ Understand how PyTorch computes gradients through automatic differentiation. Tra
 
 ## Completion Checklist
 
-- [ ] Computational graph traced and documented
-- [ ] Gradient flow from loss to parameters explained
-- [ ] Verification that manual and autograd gradients match
-- [ ] Diagram or notes in `visualizations/` or milestone folder
-- [ ] Journal entry in `learning_journal.md`
+- [x] Computational graph traced and documented
+- [x] Gradient flow from loss to parameters explained
+- [x] Verification that manual and autograd gradients match
+- [x] Diagram or notes in `visualizations/` or milestone folder
+- [x] Journal entry in `learning_journal.md`
